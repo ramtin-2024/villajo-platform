@@ -1,12 +1,82 @@
-from django.db import models
+from django.db import models, transaction, IntegrityError
 from django.core.validators import MinValueValidator
+from django.utils.text import slugify
+
+# ==================================================
+#                  Abstract Base Model
+# ==================================================
+"""An abstract model that adds a unique, automatic slug field to any model inheriting from it."""
+
+
+class SluggedModel(models.Model):
+    slug = models.SlugField(unique=True, verbose_name="اسلاگ")
+
+    class Meta:
+        abstract = True
+
+    def auto_filler(self):
+        source = getattr(self, "name", None) or getattr(self, "title", None)
+        if not source:
+            return None
+        base_slug = slugify(source)
+        slug = base_slug
+        counter = 1
+        while self.__class__.objects.filter(slug=slug).exists():
+            slug = f"{base_slug}-{counter}"
+            counter += 1
+
+        return slug
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = self.auto_filler()
+
+        max_attempts = 5
+
+        for attempts in range(max_attempts):
+            try:
+                with transaction.atomic():
+                    return super().save(*args, **kwargs)
+            except IntegrityError:
+                if attempts == max_attempts - 1:
+                    raise
+                self.slug = self.auto_filler()
+
+
+# ==================================================
+#              Shared Choice Definitions
+# ==================================================
+"""Possible statuses for the approval of a property by an inspector."""
+
+
+class VerificationStatus(models.TextChoices):
+    UNVERIFIED = "unverified", "تاییدنشده"
+    PENDING = "pending", "در انتظار بررسی"
+    VERIFIED = "verified", "تاییدشده"
+    REJECTED = "rejected", "ردشده"
+
+
+"""Types of general rules definable for a property."""
+
+
+class GeneralRule(models.TextChoices):
+    PARTY = "party", "مهمانی"
+    SMOKING = "smoking", "سیگار"
+    PETS = "pets", "حیوانات خانگی"
+    QUIET_HOURS = "quiet_hours", "ساعات سکوت"
+    CHECK_IN = "check_in", "ورود"
+    CHECK_OUT = "check_out", "خروج"
+    EXTRA_GUESTS = "extra_guests", "مهمان اضافه"
+    VISITORS = "visitors", "مراجعه‌کننده"
+    AGE_RESTRICTION = "age_restriction", "محدودیت سنی"
+    FILMING = "filming", "فیلم‌برداری و عکاسی"
+    EVENT = "event", "برگزاری مراسم"
+
 
 # ==================================================
 #     Key Accommodation Information
 # ==================================================
-
-
-class Property(models.Model):
+class Property(SluggedModel):
     PROPERTY_TYPE_CHOICES = [
         ("villa", "ویلا"),
         ("cottage", "کلبه"),
@@ -17,9 +87,7 @@ class Property(models.Model):
     ]
 
     # Identity
-    id = models.BigAutoField(primary_key=True)
     title = models.CharField(max_length=150, verbose_name="عنوان")
-    slug = models.SlugField(unique=True, verbose_name="اسلاگ")
     description = models.TextField(verbose_name="توضیحات")
     property_type = models.CharField(
         max_length=20, choices=PROPERTY_TYPE_CHOICES, verbose_name="نوع ملک"
@@ -59,13 +127,6 @@ class Property(models.Model):
         ("archived", "بایگانی شده"),
     ]
 
-    VERIFICATION_STATUS = [
-        ("unverified", "تاییدنشده"),
-        ("pending", "در انتظار بررسی"),
-        ("verified", "تاییدشده"),
-        ("rejected", "ردشده"),
-    ]
-
     status = models.CharField(
         max_length=30,
         choices=STATUS_CHOICES,
@@ -73,16 +134,15 @@ class Property(models.Model):
         verbose_name="وضعیت اقامتگاه",
     )
     verification_status = models.CharField(
-        max_length=30,
-        choices=VERIFICATION_STATUS,
-        default="unverified",
+        max_length=20,
+        choices=VerificationStatus.choices,
         verbose_name="وضعیت تایید بازرس",
     )
 
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ثبت")
     updated_at = models.DateTimeField(
-        auto_now_add=True, verbose_name="تاریخ آخرین بروزرسانی"
+        auto_now=True, verbose_name="تاریخ آخرین بروزرسانی"
     )
     published_at = models.DateTimeField(
         null=True, blank=True, verbose_name="تاریخ انتشار "
@@ -95,14 +155,13 @@ class Property(models.Model):
 # ===================================================
 #                   Location
 # ===================================================
-class Country(models.Model):
+class Country(SluggedModel):
     # Identity
     name = models.CharField(max_length=60, verbose_name="نام کشور")
     code = models.CharField(max_length=6, verbose_name="کد کشور")
-    slug = models.SlugField(unique=True, verbose_name="اسلاگ")
 
 
-class Province(models.Model):
+class Province(SluggedModel):
     # Relationship
     country = models.ForeignKey(
         Country, on_delete=models.CASCADE, related_name="provinces", verbose_name="کشور"
@@ -110,10 +169,9 @@ class Province(models.Model):
     # Identity
     name = models.CharField(max_length=25, verbose_name="نام استان")
     code = models.CharField(max_length=6, verbose_name="کد استان")
-    slug = models.SlugField(unique=True, verbose_name="اسلاگ")
 
 
-class County(models.Model):
+class County(SluggedModel):
     # Relationship
     province = models.ForeignKey(
         Province,
@@ -124,10 +182,9 @@ class County(models.Model):
     # Identity
     name = models.CharField(max_length=20, verbose_name="نام شهرستان")
     code = models.CharField(max_length=6, verbose_name="کد شهرستان")
-    slug = models.SlugField(unique=True, verbose_name="اسلاگ")
 
 
-class District(models.Model):
+class District(SluggedModel):
     # Relationship
     county = models.ForeignKey(
         County,
@@ -138,10 +195,9 @@ class District(models.Model):
     # Identity
     name = models.CharField(max_length=35, verbose_name="نام بخش")
     code = models.CharField(max_length=6, verbose_name="کد بخش")
-    slug = models.SlugField(unique=True, verbose_name="اسلاگ")
 
 
-class RuralDistrict(models.Model):
+class RuralDistrict(SluggedModel):
     # Relationship
     district = models.ForeignKey(
         District,
@@ -152,10 +208,9 @@ class RuralDistrict(models.Model):
     # Identity
     name = models.CharField(max_length=50, verbose_name="نام دهستان")
     code = models.CharField(max_length=6, verbose_name="کد دهستان")
-    slug = models.SlugField(unique=True, verbose_name="اسلاگ")
 
 
-class City(models.Model):
+class City(SluggedModel):
     # Relationship
     province = models.ForeignKey(
         Province, on_delete=models.CASCADE, related_name="cities", verbose_name="استان"
@@ -169,7 +224,6 @@ class City(models.Model):
     # Identity
     name = models.CharField(max_length=50, verbose_name="نام شهر")
     code = models.CharField(max_length=6, verbose_name="کد شهر")
-    slug = models.SlugField(unique=True, verbose_name="اسلاگ")
 
 
 class PropertyLocation(models.Model):
@@ -180,36 +234,7 @@ class PropertyLocation(models.Model):
         related_name="location",
         verbose_name="موقعیت مکانی",
     )
-    country = models.ForeignKey(
-        Country,
-        on_delete=models.CASCADE,
-        related_name="properties",
-        verbose_name="کشور",
-    )
-    province = models.ForeignKey(
-        Province,
-        on_delete=models.CASCADE,
-        related_name="properties",
-        verbose_name="استان",
-    )
-    county = models.ForeignKey(
-        County,
-        on_delete=models.CASCADE,
-        related_name="properties",
-        verbose_name="شهرستان",
-    )
-    district = models.ForeignKey(
-        District,
-        on_delete=models.CASCADE,
-        related_name="properties",
-        verbose_name="بخش",
-    )
-    rural_district = models.ForeignKey(
-        RuralDistrict,
-        on_delete=models.CASCADE,
-        related_name="properties",
-        verbose_name="دهستان",
-    )
+
     city = models.ForeignKey(
         City, on_delete=models.CASCADE, related_name="properties", verbose_name="شهر"
     )
@@ -231,14 +256,12 @@ class PropertyLocation(models.Model):
 # ==================================================
 #                       Amenity
 # ==================================================
-class Category(models.Model):
-    id = models.BigAutoField(primary_key=True)
+class Category(SluggedModel):
     name = models.CharField(max_length=200, verbose_name="نام طبقه بندی")
-    slug = models.SlugField(unique=True, verbose_name="اسلاگ")
     is_active = models.BooleanField(default=False, verbose_name="وضعیت")
 
 
-class Amenity(models.Model):
+class Amenity(SluggedModel):
     # Relationship
     property_obj = models.ManyToManyField(
         Property, related_name="amenities", verbose_name="اقامتگاه‌ها"
@@ -252,7 +275,6 @@ class Amenity(models.Model):
 
     # Identity
     name = models.CharField(max_length=50, verbose_name="نام امکانات رفاهی")
-    slug = models.SlugField(unique=True, verbose_name="اسلاگ")
 
     # Status
     is_active = models.BooleanField(default=False, verbose_name="وضعیت")
@@ -261,12 +283,10 @@ class Amenity(models.Model):
 # ==================================================
 #                       Images
 # ==================================================
-
-
 class PropertyImage(models.Model):
 
     # Relationship
-    propertyimg = models.ForeignKey(
+    property_obj = models.ForeignKey(
         Property,
         on_delete=models.CASCADE,
         related_name="images",
@@ -284,37 +304,19 @@ class PropertyImage(models.Model):
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ثبت")
     updated_at = models.DateTimeField(
-        auto_now_add=True, verbose_name="تاریخ اخرین بروزرسانی"
+        auto_now=True, verbose_name="تاریخ اخرین بروزرسانی"
     )
 
     def __str__(self):
-        return f"{self.Property.title} - {self.order}"
+        return f"{self.property_obj} - {self.order}"
 
 
 # ===================================================
 #                Laws and regulations
 # ===================================================
-GENERAL_RULE_CHOICES = [
-    ("party", "مهمانی"),
-    ("smoking", "سیگار"),
-    ("pets", "حیوانات خانگی"),
-    ("quiet_hours", "ساعات سکوت"),
-    ("check_in", "ورود"),
-    ("check_out", "خروج"),
-    ("extra_guests", "مهمان اضافه"),
-    ("visitors", "مراجعه‌کننده"),
-    ("age_restriction", "محدودیت سنی"),
-    ("filming", "فیلم‌برداری و عکاسی"),
-    ("event", "برگزاری مراسم"),
-]
-
-
 class PropertyRule(models.Model):
-    # Identity
-    id = models.BigAutoField(primary_key=True)
-
     # Relations
-    propertyy = models.ForeignKey(
+    property_obj = models.ForeignKey(
         Property, on_delete=models.CASCADE, related_name="rules", verbose_name="ملک"
     )
     amenity = models.ForeignKey(
@@ -329,8 +331,8 @@ class PropertyRule(models.Model):
     # Classification
     rule_key = models.CharField(
         max_length=50,
-        choices=GENERAL_RULE_CHOICES,
-        verbose_name="",
+        choices=GeneralRule,
+        verbose_name="نوع قانون",
     )
 
 
@@ -381,9 +383,7 @@ class QuantityRule(models.Model):
 # ===================================================
 #               Cancellation Policies
 # ===================================================
-
-
-class CancellationPolicy(models.Model):
+class CancellationPolicy(SluggedModel):
 
     # Relations
     property_obj = models.ForeignKey(
@@ -395,7 +395,6 @@ class CancellationPolicy(models.Model):
 
     # Identity & Basic Information
     title = models.CharField(max_length=350, verbose_name="عنوان سیاست")
-    slug = models.SlugField(unique=True, verbose_name="اسلاگ")
     description = models.TextField(verbose_name="توضیحات تکمیلی")
 
     # Status & Timestamps
@@ -428,7 +427,7 @@ class CancellationRule(models.Model):
     )
     # Values
     refund_percentage = models.DecimalField(
-        max_digits=4, decimal_places=2, verbose_name="درصد بازگشت وجه"
+        max_digits=5, decimal_places=2, verbose_name="درصد بازگشت وجه"
     )
 
     # Additional Rules
@@ -447,16 +446,9 @@ class CancellationRule(models.Model):
 # ====================================================
 #         Accommodation Verification Status
 # ====================================================
-VERIFICATION_STATUS = [
-    ("pending", "در انتظار بررسی"),
-    ("approved", "تایید شده"),
-    ("rejected", "رد شده"),
-]
-
-
 class PropertyVerification(models.Model):
     # Relation
-    propertyy = models.OneToOneField(
+    property_obj = models.OneToOneField(
         Property,
         on_delete=models.CASCADE,
         related_name="verification",
@@ -465,7 +457,7 @@ class PropertyVerification(models.Model):
 
     # Verification Status
     status = models.CharField(
-        max_length=20, choices=VERIFICATION_STATUS, verbose_name=""
+        max_length=20, choices=VerificationStatus.choices, verbose_name="وضعیت تایید"
     )
 
     # Verification Information
