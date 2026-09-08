@@ -1,7 +1,8 @@
 asgiref==3.12.1
 Django==6.1
 django-smart-selects==1.7.2
-django-unfold==0.104.1
+django-unfold==0.105.0
+django-unfold-farsi==0.1.2
 djangorestframework==3.18.0
 pillow==12.3.0
 sqlparse==0.6.0
