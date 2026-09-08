@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
 from pathlib import Path
+from unfold_farsi.settings import apply_unfold_farsi_defaults
+from django.templatetags.static import static
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -32,6 +34,10 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'unfold',
+    'unfold.contrib.filters',
+    'unfold.contrib.forms',
+    'unfold.contrib.inlines',
+    'unfold_farsi', 
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -108,7 +114,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'fa-ir'
 
 TIME_ZONE = 'UTC'
 
@@ -126,8 +132,55 @@ STATIC_URL = 'static/'
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
-MAILERS = {
-    'default': {
-        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+
+UNFOLD = apply_unfold_farsi_defaults( {
+    "SITE_TITLE": "پنل مدیریت",
+    "SITE_HEADER": "پنل مدیریت",
+    "SHOW_HISTORY": True,
+    "SHOW_LANGUAGES": False,
+    "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": True,
     },
-}
+    "COLORS": {
+        "base": {
+            "50": "oklch(97.8% .006 60)",
+            "100": "oklch(94.5% .012 55)",
+            "200": "oklch(88.5% .018 50)",
+            "300": "oklch(78% .025 45)",
+            "400": "oklch(64% .03 40)",
+            "500": "oklch(50% .035 38)",
+            "600": "oklch(40% .035 36)",
+            "700": "oklch(32% .03 34)",
+            "800": "oklch(24% .025 32)",
+            "900": "oklch(17% .02 30)",
+            "950": "oklch(11% .015 28)",
+        },
+        "primary": {
+            "50": "oklch(96% .025 195)",
+            "100": "oklch(91% .045 193)",
+            "200": "oklch(83% .07 191)",
+            "300": "oklch(73% .09 189)",
+            "400": "oklch(62% .1 187)",
+            "500": "oklch(52% .095 185)",
+            "600": "oklch(44% .085 184)",
+            "700": "oklch(37% .07 183)",
+            "800": "oklch(30% .055 182)",
+            "900": "oklch(24% .04 181)",
+            "950": "oklch(16% .03 180)",
+        },
+        "font": {
+            "subtle-light": "var(--color-base-500)",
+            "subtle-dark": "var(--color-base-400)",
+            "default-light": "var(--color-base-700)",
+            "default-dark": "var(--color-base-200)",
+            "important-light": "var(--color-base-900)",
+            "important-dark": "var(--color-base-50)",
+        },
+    },
+},
+ static=static,
+)
