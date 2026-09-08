@@ -9,7 +9,7 @@ from django.utils.text import slugify
 
 
 class SluggedModel(models.Model):
-    slug = models.SlugField(unique=True, verbose_name="اسلاگ")
+    slug = models.SlugField(unique=True,allow_unicode=True,blank=True,verbose_name="اسلاگ")
 
     class Meta:
         abstract = True
@@ -18,7 +18,7 @@ class SluggedModel(models.Model):
         source = getattr(self, "name", None) or getattr(self, "title", None)
         if not source:
             return None
-        base_slug = slugify(source)
+        base_slug = slugify(source,allow_unicode=True)
         slug = base_slug
         counter = 1
         while self.__class__.objects.filter(slug=slug).exists():
@@ -160,6 +160,8 @@ class Country(SluggedModel):
     name = models.CharField(max_length=60, verbose_name="نام کشور")
     code = models.CharField(max_length=6, verbose_name="کد کشور")
 
+    def __str__(self):
+        return self.name
 
 class Province(SluggedModel):
     # Relationship
@@ -170,6 +172,8 @@ class Province(SluggedModel):
     name = models.CharField(max_length=25, verbose_name="نام استان")
     code = models.CharField(max_length=6, verbose_name="کد استان")
 
+    def __str__(self):
+        return self.name
 
 class County(SluggedModel):
     # Relationship
@@ -182,6 +186,9 @@ class County(SluggedModel):
     # Identity
     name = models.CharField(max_length=20, verbose_name="نام شهرستان")
     code = models.CharField(max_length=6, verbose_name="کد شهرستان")
+
+    def __str__(self):
+        return self.name
 
 
 class District(SluggedModel):
@@ -196,6 +203,9 @@ class District(SluggedModel):
     name = models.CharField(max_length=35, verbose_name="نام بخش")
     code = models.CharField(max_length=6, verbose_name="کد بخش")
 
+    def __str__(self):
+        return self.name
+
 
 class RuralDistrict(SluggedModel):
     # Relationship
@@ -208,6 +218,10 @@ class RuralDistrict(SluggedModel):
     # Identity
     name = models.CharField(max_length=50, verbose_name="نام دهستان")
     code = models.CharField(max_length=6, verbose_name="کد دهستان")
+
+
+    def __str__(self):
+        return self.name
 
 
 class City(SluggedModel):
@@ -224,6 +238,9 @@ class City(SluggedModel):
     # Identity
     name = models.CharField(max_length=50, verbose_name="نام شهر")
     code = models.CharField(max_length=6, verbose_name="کد شهر")
+
+    def __str__(self):
+        return self.name
 
 
 class PropertyLocation(models.Model):
