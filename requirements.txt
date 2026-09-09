@@ -1,9 +1,12 @@
 asgiref==3.12.1
 Django==6.1
+django-jalali-date-unfold==2.0.0
 django-smart-selects==1.7.2
 django-unfold==0.105.0
 django-unfold-farsi==0.1.2
 djangorestframework==3.18.0
+jalali_core==1.0.0
+jdatetime==6.1.0
 pillow==12.3.0
 sqlparse==0.6.0
 tzdata==2026.3

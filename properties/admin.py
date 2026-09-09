@@ -2,6 +2,7 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
 from unfold.admin import StackedInline
+from jalali_date.admin import ModelAdminJalaliMixin
 from .models import (
     Property,
     Country,
@@ -20,7 +21,7 @@ class PropertyLocationInline(StackedInline):
 
 
 @admin.register(Property)
-class PropertyAdmin(ModelAdmin):
+class PropertyAdmin(ModelAdminJalaliMixin,ModelAdmin):
     inlines = [PropertyLocationInline]
     list_display = (
         "title",
