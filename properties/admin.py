@@ -2,6 +2,8 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
 from unfold.admin import StackedInline
+from django.utils.html import format_html
+from jalali_date.admin import ModelAdminJalaliMixin
 from .models import (
     Property,
     Country,
@@ -11,17 +13,48 @@ from .models import (
     RuralDistrict,
     City,
     PropertyLocation,
+    Category,
+    Amenity,
+    PropertyImage,
+    PropertyRule,
 )
+
+
+class PropertyImageInline(admin.TabularInline):
+    model = PropertyImage
+    extra = 1
+    fields = (
+        "image_preview",
+        "image",
+        "alt_text",
+        "is_cover",
+        "order",
+    )
+    readonly_fields = ("image_preview",)
+    verbose_name = "تصویر"
+    verbose_name_plural = "تصاویر"
+
+    def image_preview(self, obj):
+        if obj.image:
+            return format_html(
+                '<img src="{}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 6px;" />',
+                obj.image.url,
+            )
+        return "—"
+
+    image_preview.short_description = "پیش‌نمایش"
 
 
 class PropertyLocationInline(StackedInline):
     model = PropertyLocation
     autocomplete_fields = ["city"]
+    max_num = 1
 
 
 @admin.register(Property)
-class PropertyAdmin(ModelAdmin):
-    inlines = [PropertyLocationInline]
+class PropertyAdmin(ModelAdminJalaliMixin, ModelAdmin):
+    filter_horizontal = ("amenities",)
+    inlines = [PropertyLocationInline, PropertyImageInline]
     list_display = (
         "title",
         "property_type",
@@ -62,6 +95,7 @@ class PropertyAdmin(ModelAdmin):
                 )
             },
         ),
+        ("امکانات رفاهی", {"fields": ("amenities",)}),
         ("وضعیت", {"fields": ("status", "verification_status")}),
         ("تاریخ‌ها", {"fields": ("created_at", "updated_at", "published_at")}),
     )
@@ -131,3 +165,29 @@ class CityAdmin(ModelAdmin):
     autocomplete_fields = ["province", "county", "district"]
 
 
+@admin.register(Category)
+class CategoryAdmin(ModelAdmin):
+    search_fields = ["name"]
+    list_display = ("name", "is_active")
+    list_filter = ("is_active",)
+
+
+@admin.register(Amenity)
+class AmenityAdmin(ModelAdmin):
+    search_fields = ["name"]
+    list_display = (
+        "name",
+        "category",
+        "is_active",
+    )
+    list_filter = (
+        "category",
+        "is_active",
+    )
+    autocomplete_fields = ["category"]
+
+
+
+@admin.register(PropertyRule)
+class PropertyRuleAdmin(ModelAdmin):
+    search_fields = [""]

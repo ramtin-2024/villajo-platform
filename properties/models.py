@@ -85,9 +85,10 @@ class Property(SluggedModel):
         ("house", "خانه"),
         ("eco_lodge", "بوم‌گردی"),
     ]
-
+    amenities = models.ManyToManyField("Amenity",related_name="properties",blank=True,verbose_name="امکانات رفاهی")
     # Identity
     title = models.CharField(max_length=150, verbose_name="عنوان")
+
     description = models.TextField(verbose_name="توضیحات")
     property_type = models.CharField(
         max_length=20, choices=PROPERTY_TYPE_CHOICES, verbose_name="نوع ملک"
@@ -147,6 +148,10 @@ class Property(SluggedModel):
     published_at = models.DateTimeField(
         null=True, blank=True, verbose_name="تاریخ انتشار "
     )
+
+    class Meta: 
+        verbose_name = "ملک"
+        verbose_name_plural = "املاک"
 
     def __str__(self):
         return self.title
@@ -280,9 +285,6 @@ class Category(SluggedModel):
 
 class Amenity(SluggedModel):
     # Relationship
-    property_obj = models.ManyToManyField(
-        Property, related_name="amenities", verbose_name="اقامتگاه‌ها"
-    )
     category = models.ForeignKey(
         Category,
         on_delete=models.CASCADE,
