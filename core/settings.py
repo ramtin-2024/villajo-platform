@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'jalali_date',
     'rest_framework',
     'accounts',
     'bookings',
@@ -184,3 +185,12 @@ UNFOLD = apply_unfold_farsi_defaults( {
 },
  static=static,
 )
+JALALI_DATE_DEFAULTS = {
+    "LIST_DISPLAY_AUTO_CONVERT": True,
+    "Strftime": {
+        "date": "%y/%m/%d",
+        "datetime": "%H:%M:%S _ %y/%m/%d",
+    },
+}
+
+
