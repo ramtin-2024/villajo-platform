@@ -17,6 +17,9 @@ from .models import (
     Amenity,
     PropertyImage,
     PropertyRule,
+    PermissionRule,
+    TimeRule,
+    QuantityRule,
 )
 
 
@@ -51,10 +54,30 @@ class PropertyLocationInline(StackedInline):
     max_num = 1
 
 
+class PermissionRuleInline(StackedInline):
+    model = PermissionRule
+    max_num = 1
+
+
+class TimeRuleInline(StackedInline):
+    model = TimeRule
+    max_num = 1
+
+
+class QuantityRuleInline(StackedInline):
+    model = QuantityRule
+    max_num = 1
+
+
+class PropertyRuleInline(StackedInline):
+    model = PropertyRule
+    inlines = [PermissionRuleInline, TimeRuleInline, QuantityRuleInline]
+
+
 @admin.register(Property)
 class PropertyAdmin(ModelAdminJalaliMixin, ModelAdmin):
     filter_horizontal = ("amenities",)
-    inlines = [PropertyLocationInline, PropertyImageInline]
+    inlines = [PropertyRuleInline, PropertyLocationInline, PropertyImageInline]
     list_display = (
         "title",
         "property_type",
@@ -185,9 +208,3 @@ class AmenityAdmin(ModelAdmin):
         "is_active",
     )
     autocomplete_fields = ["category"]
-
-
-
-@admin.register(PropertyRule)
-class PropertyRuleAdmin(ModelAdmin):
-    search_fields = [""]
