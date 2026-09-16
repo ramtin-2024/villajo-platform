@@ -1,6 +1,9 @@
-from django.db import models, transaction, IntegrityError
 from django.core.validators import MinValueValidator
+from django.db import IntegrityError, models, transaction
 from django.utils.text import slugify
+
+ACCOMMODATION='اقامتگاه'
+REGULATION ='قانون'
 
 # ==================================================
 #                  Abstract Base Model
@@ -77,14 +80,15 @@ class GeneralRule(models.TextChoices):
 #     Key Accommodation Information
 # ==================================================
 class Property(SluggedModel):
-    PROPERTY_TYPE_CHOICES = [
+        
+    PROPERTY_TYPE_CHOICES = (
         ("villa", "ویلا"),
         ("cottage", "کلبه"),
         ("apartment", "آپارتمان"),
         ("suite", "سوئیت"),
         ("house", "خانه"),
         ("eco_lodge", "بوم‌گردی"),
-    ]
+    )
     amenities = models.ManyToManyField("Amenity",related_name="properties",blank=True,verbose_name="امکانات رفاهی")
     # Identity
     title = models.CharField(max_length=150, verbose_name="عنوان")
@@ -118,7 +122,7 @@ class Property(SluggedModel):
     # owner =
 
     # Status
-    STATUS_CHOICES = [
+    STATUS_CHOICES = (
         ("draft", "پیش نویس"),
         ("pending_review", "در انتظار برسی"),
         ("published", "منتشر شده"),
@@ -126,7 +130,7 @@ class Property(SluggedModel):
         ("paused", "متوقف شده"),
         ("suspended", "تعلیق شده"),
         ("archived", "بایگانی شده"),
-    ]
+    )
 
     status = models.CharField(
         max_length=30,
@@ -309,7 +313,7 @@ class PropertyImage(models.Model):
         Property,
         on_delete=models.CASCADE,
         related_name="images",
-        verbose_name="اقامتگاه",
+        verbose_name=ACCOMMODATION,
     )
 
     # Image
@@ -361,7 +365,7 @@ class PermissionRule(models.Model):
         PropertyRule,
         on_delete=models.CASCADE,
         related_name="permission",
-        verbose_name="قانون",
+        verbose_name=REGULATION,
     )
 
     # Value
@@ -375,7 +379,7 @@ class TimeRule(models.Model):
         PropertyRule,
         on_delete=models.CASCADE,
         related_name="time",
-        verbose_name="قانون",
+        verbose_name=REGULATION,
     )
 
     # Time
@@ -390,7 +394,7 @@ class QuantityRule(models.Model):
         PropertyRule,
         on_delete=models.CASCADE,
         related_name="quantity",
-        verbose_name="قانون",
+        verbose_name=REGULATION,
     )
 
     # Value
@@ -409,7 +413,7 @@ class CancellationPolicy(SluggedModel):
         Property,
         on_delete=models.CASCADE,
         related_name="cancellation_policies",
-        verbose_name="اقامتگاه",
+        verbose_name=ACCOMMODATION,
     )
 
     # Identity & Basic Information
@@ -471,7 +475,7 @@ class PropertyVerification(models.Model):
         Property,
         on_delete=models.CASCADE,
         related_name="verification",
-        verbose_name="اقامتگاه",
+        verbose_name=ACCOMMODATION,
     )
 
     # Verification Status
@@ -483,6 +487,8 @@ class PropertyVerification(models.Model):
     verified_at = models.DateTimeField(
         null=True, blank=True, verbose_name="تاریخ و زمان تأیید"
     )
+
+    # TODO: Add verified_by ForeignKey once account app is ready
     # verified_by = models.ForeignKey()
 
     # Rejection
