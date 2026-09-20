@@ -1,25 +1,25 @@
 # properties/admin.py
 from django.contrib import admin
-from unfold.admin import ModelAdmin
-from unfold.admin import StackedInline
 from django.utils.html import format_html
 from jalali_date.admin import ModelAdminJalaliMixin
+from unfold.admin import ModelAdmin, StackedInline
+
 from .models import (
-    Property,
+    Amenity,
+    Category,
+    City,
     Country,
-    Province,
     County,
     District,
-    RuralDistrict,
-    City,
-    PropertyLocation,
-    Category,
-    Amenity,
-    PropertyImage,
-    PropertyRule,
     PermissionRule,
-    TimeRule,
+    Property,
+    PropertyImage,
+    PropertyLocation,
+    PropertyRule,
+    Province,
     QuantityRule,
+    RuralDistrict,
+    TimeRule,
 )
 
 
@@ -50,7 +50,7 @@ class PropertyImageInline(admin.TabularInline):
 
 class PropertyLocationInline(StackedInline):
     model = PropertyLocation
-    autocomplete_fields = ["city"]
+    autocomplete_fields = ("city",)
     max_num = 1
 
 
@@ -71,13 +71,13 @@ class QuantityRuleInline(StackedInline):
 
 class PropertyRuleInline(StackedInline):
     model = PropertyRule
-    inlines = [PermissionRuleInline, TimeRuleInline, QuantityRuleInline]
+    inlines = (PermissionRuleInline, TimeRuleInline, QuantityRuleInline,)
 
 
 @admin.register(Property)
 class PropertyAdmin(ModelAdminJalaliMixin, ModelAdmin):
     filter_horizontal = ("amenities",)
-    inlines = [PropertyRuleInline, PropertyLocationInline, PropertyImageInline]
+    inlines = (PropertyRuleInline, PropertyLocationInline, PropertyImageInline,)
     list_display = (
         "title",
         "property_type",
@@ -138,66 +138,66 @@ class CountryAdmin(ModelAdmin):
 
 @admin.register(Province)
 class ProvinceAdmin(ModelAdmin):
-    search_fields = ["name", "code"]
+    search_fields = ("name", "code",)
     list_display = (
         "name",
         "code",
     )
     list_filter = ("country",)
-    autocomplete_fields = ["country"]
+    autocomplete_fields = ("country",)
 
 
 @admin.register(County)
 class CountyAdmin(ModelAdmin):
-    search_fields = ["name", "code"]
+    search_fields = ("name", "code",)
     list_display = (
         "name",
         "code",
     )
     list_filter = ("province",)
-    autocomplete_fields = ["province"]
+    autocomplete_fields = ("province",)
 
 
 @admin.register(District)
 class DistrictAdmin(ModelAdmin):
-    search_fields = ["name", "code"]
+    search_fields = ("name", "code",)
     list_display = (
         "name",
         "code",
     )
     list_filter = ("county",)
-    autocomplete_fields = ["county"]
+    autocomplete_fields = ("county",)
 
 
 @admin.register(RuralDistrict)
 class RuralDistrictAdmin(ModelAdmin):
-    search_fields = ["name", "code"]
+    search_fields = ("name", "code",)
     list_display = (
         "name",
         "code",
     )
     list_filter = ("district",)
-    autocomplete_fields = ["district"]
+    autocomplete_fields = ("district",)
 
 
 @admin.register(City)
 class CityAdmin(ModelAdmin):
-    search_fields = ["name", "code"]
+    search_fields = ("name", "code",)
     list_display = ("name", "code", "province", "county", "district")
     list_filter = ("province", "county", "district")
-    autocomplete_fields = ["province", "county", "district"]
+    autocomplete_fields = ("province", "county", "district",)
 
 
 @admin.register(Category)
 class CategoryAdmin(ModelAdmin):
-    search_fields = ["name"]
+    search_fields = ("name",)
     list_display = ("name", "is_active")
     list_filter = ("is_active",)
 
 
 @admin.register(Amenity)
 class AmenityAdmin(ModelAdmin):
-    search_fields = ["name"]
+    search_fields = ("name",)
     list_display = (
         "name",
         "category",
@@ -207,4 +207,4 @@ class AmenityAdmin(ModelAdmin):
         "category",
         "is_active",
     )
-    autocomplete_fields = ["category"]
+    autocomplete_fields = ("category",)
