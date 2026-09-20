@@ -9,23 +9,27 @@ https://docs.djangoproject.com/en/6.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
-
+import os
 from pathlib import Path
-from unfold_farsi.settings import apply_unfold_farsi_defaults
+
 from django.templatetags.static import static
+from django.urls import reverse_lazy
+from dotenv import load_dotenv
+from unfold_farsi.settings import apply_unfold_farsi_defaults
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR/".env")
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-a^1y0whd_17(wqf(lu9=onvapg$-7sz7i)$wsrq$l420u+27v)'
+SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DJANGO_DEBUG","False")=="True"
 
 ALLOWED_HOSTS = []
 
@@ -145,6 +149,38 @@ UNFOLD = apply_unfold_farsi_defaults( {
     "SIDEBAR": {
         "show_search": True,
         "show_all_applications": True,
+        "navigation":[
+            {
+            "title":"مدیریت اقامتگاه ها",
+            "separator":False,
+            "collapsible":False,
+            "items":[
+                {"title": "املاک", "icon": "home",
+                "link": reverse_lazy("admin:properties_property_changelist")},            
+                {"title": "کشورها", "icon": "public",            
+                "link": reverse_lazy("admin:properties_country_changelist")},            
+                {"title": "استان‌ها / ایالت‌ها", "icon": "map",            
+                "link": reverse_lazy("admin:properties_province_changelist")},            
+                {"title": "شهرستان‌ها / ناحیه‌ها", "icon": "location_city",            
+                "link": reverse_lazy("admin:properties_county_changelist")},            
+                {"title": "بخش‌ها", "icon": "signpost",            
+                "link": reverse_lazy("admin:properties_district_changelist")},            
+                {"title": "دهستان‌ها / روستاها", "icon": "holiday_village",            
+                "link": reverse_lazy("admin:properties_ruraldistrict_changelist")},            
+                {"title": "شهرها", "icon": "apartment",            
+                "link": reverse_lazy("admin:properties_city_changelist")},            
+                {"title": "امکانات رفاهی", "icon": "pool",            
+                "link": reverse_lazy("admin:properties_amenity_changelist")},            
+                {"title": "دسته‌بندی‌ها", "icon": "category",            
+                "link": reverse_lazy("admin:properties_category_changelist")},            
+                {"title": "قوانین لغو رزرو", "icon": "event_busy",            
+                "link": reverse_lazy("admin:properties_cancellationpolicy_changelist")},
+                {"title": "وضعیت های تایید ملک", "icon": "verified",            
+                "link": reverse_lazy("admin:properties_propertyverification_changelist")},
+            ]
+
+            }
+        ]
     },
     "COLORS": {
         "base": {
