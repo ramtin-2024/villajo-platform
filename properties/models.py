@@ -169,6 +169,10 @@ class Country(SluggedModel):
     name = models.CharField(max_length=60, verbose_name="نام کشور")
     code = models.CharField(max_length=6, verbose_name="کد کشور")
 
+    class Meta: 
+        verbose_name = "کشور"
+        verbose_name_plural ="کشور ها"
+    
     def __str__(self):
         return self.name
 
@@ -181,6 +185,10 @@ class Province(SluggedModel):
     name = models.CharField(max_length=25, verbose_name="نام استان")
     code = models.CharField(max_length=6, verbose_name="کد استان")
 
+    class Meta: 
+        verbose_name = "استان/ایالت "
+        verbose_name_plural = "استان ها / ایالت ها"
+    
     def __str__(self):
         return self.name
 
@@ -196,6 +204,10 @@ class County(SluggedModel):
     name = models.CharField(max_length=20, verbose_name="نام شهرستان")
     code = models.CharField(max_length=6, verbose_name="کد شهرستان")
 
+    class Meta: 
+        verbose_name = "شهرستان/ناحیه"
+        verbose_name_plural ="شهرستان ها/ناحیه ها"
+    
     def __str__(self):
         return self.name
 
@@ -212,6 +224,10 @@ class District(SluggedModel):
     name = models.CharField(max_length=35, verbose_name="نام بخش")
     code = models.CharField(max_length=6, verbose_name="کد بخش")
 
+    class Meta: 
+        verbose_name = "بخش"
+        verbose_name_plural = "بخش ها"
+    
     def __str__(self):
         return self.name
 
@@ -228,7 +244,10 @@ class RuralDistrict(SluggedModel):
     name = models.CharField(max_length=50, verbose_name="نام دهستان")
     code = models.CharField(max_length=6, verbose_name="کد دهستان")
 
-
+    class Meta: 
+        verbose_name = "دهستان/روستا"
+        verbose_name_plural = "دهستان ها/روستا ها"
+    
     def __str__(self):
         return self.name
 
@@ -248,6 +267,11 @@ class City(SluggedModel):
     name = models.CharField(max_length=50, verbose_name="نام شهر")
     code = models.CharField(max_length=6, verbose_name="کد شهر")
 
+    class Meta: 
+        verbose_name = "شهر"
+        verbose_name_plural = "شهر ها"
+    
+    
     def __str__(self):
         return self.name
 
@@ -286,7 +310,12 @@ class Category(SluggedModel):
     name = models.CharField(max_length=200, verbose_name="نام طبقه بندی")
     is_active = models.BooleanField(default=False, verbose_name="وضعیت")
 
-
+    class Meta: 
+        verbose_name = "دسته بندی"
+        verbose_name_plural = "مدیریت دسته بندی ها"
+        
+    def __str__(self):
+        return self.name
 class Amenity(SluggedModel):
     # Relationship
     category = models.ForeignKey(
@@ -302,6 +331,12 @@ class Amenity(SluggedModel):
     # Status
     is_active = models.BooleanField(default=False, verbose_name="وضعیت")
 
+    class Meta: 
+        verbose_name = "امکانات رفاهی"
+        verbose_name_plural = "مدیریت امکانات رفاهی" 
+        
+    def __str__(self):
+        return self.name
 
 # ==================================================
 #                       Images
@@ -430,6 +465,12 @@ class CancellationPolicy(SluggedModel):
     updated_at = models.DateTimeField(
         auto_now=True, verbose_name="تاریخ و زمان آخرین بروزرسانی"
     )
+    class Meta: 
+            verbose_name = "سیاست لغو"
+            verbose_name_plural = "قوانین لغو رزرو" 
+            
+    def __str__(self):
+            return self.title
 
 
 class CancellationRule(models.Model):
@@ -488,7 +529,7 @@ class PropertyVerification(models.Model):
         null=True, blank=True, verbose_name="تاریخ و زمان تأیید"
     )
 
-    # TODO: Add verified_by ForeignKey once account app is ready
+    
     # verified_by = models.ForeignKey()
 
     # Rejection
@@ -508,3 +549,11 @@ class PropertyVerification(models.Model):
     updated_at = models.DateTimeField(
         auto_now=True, verbose_name="تاریخ و زمان آخرین بروزرسانی"
     )
+    class Meta: 
+        verbose_name = "وضعیت تایید ملک"
+        verbose_name_plural = "وضعیت های تایید ملک"
+        ordering = ("-created_at",)
+                
+    def __str__(self):
+        return f"{self.property_obj}-{self.get_status_display()}"
+    

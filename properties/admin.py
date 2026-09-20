@@ -6,6 +6,8 @@ from unfold.admin import ModelAdmin, StackedInline
 
 from .models import (
     Amenity,
+    CancellationPolicy,
+    CancellationRule,
     Category,
     City,
     Country,
@@ -16,6 +18,7 @@ from .models import (
     PropertyImage,
     PropertyLocation,
     PropertyRule,
+    PropertyVerification,
     Province,
     QuantityRule,
     RuralDistrict,
@@ -48,6 +51,29 @@ class PropertyImageInline(admin.TabularInline):
     image_preview.short_description = "پیش‌نمایش"
 
 
+class CancellationRuleInline(admin.TabularInline):
+    model = CancellationRule
+    extra = 0
+    fields = (
+        "priority",
+        "hours_before_checkin",
+        "hours_before_checkin_max",
+        "refund_percentage",
+        "charge_first_night",
+        "note",
+    )
+    ordering = ("priority",)
+
+    verbose_name = "قانون لغو"
+    verbose_name_plural = "قوانین لغو"
+
+class PropertyVerificationInline(StackedInline):
+    model = PropertyVerification
+    max_num = 1
+    can_delete = False
+    readonly_fields =("created_at", "updated_at",)
+
+                     
 class PropertyLocationInline(StackedInline):
     model = PropertyLocation
     autocomplete_fields = ("city",)
@@ -71,13 +97,14 @@ class QuantityRuleInline(StackedInline):
 
 class PropertyRuleInline(StackedInline):
     model = PropertyRule
+    extra = 1
     inlines = (PermissionRuleInline, TimeRuleInline, QuantityRuleInline,)
 
 
 @admin.register(Property)
 class PropertyAdmin(ModelAdminJalaliMixin, ModelAdmin):
     filter_horizontal = ("amenities",)
-    inlines = (PropertyRuleInline, PropertyLocationInline, PropertyImageInline,)
+    inlines = (PropertyRuleInline,PropertyVerificationInline,PropertyLocationInline, PropertyImageInline,)
     list_display = (
         "title",
         "property_type",
@@ -96,7 +123,7 @@ class PropertyAdmin(ModelAdminJalaliMixin, ModelAdmin):
         "description",
         "slug",
     )
-    readonly_fields = ("created_at", "updated_at")
+    readonly_fields = ("created_at", "updated_at",)
 
     fieldsets = (
         (
@@ -208,3 +235,36 @@ class AmenityAdmin(ModelAdmin):
         "is_active",
     )
     autocomplete_fields = ("category",)
+
+
+
+@admin.register(CancellationPolicy)
+class CancellationPolicyAdmin(ModelAdmin):
+    inlines = (CancellationRuleInline,)
+    search_fields = ("title","property_obj__title",)
+    list_display = ("title","property_obj","is_active","created_at",)
+    list_filter = ("is_active",)
+    autocomplete_fields =("property_obj",)
+    readonly_fields = ("created_at","updated_at",)
+
+@admin.register(PropertyVerification)
+class PropertyVerificationAdmin(ModelAdmin):
+    search_fields = ("property_obj__title",)
+    list_display =("property_obj","status","verified_at","created_at",)
+    list_filter =("status","created_at",)
+    readonly_fields=("created_at","updated_at","verified_at",)
+    autocomplete_fields =("property_obj",)
+    fieldsets = (
+    ("اطلاعات ملک", {
+        "fields": ("property_obj",)
+    }),
+    ("وضعیت تأیید", {
+        "fields": ("status", "verified_at")
+    }),
+    ("دلیل رد و یادداشت", {
+        "fields": ("rejection_reason", "admin_note")
+    }),
+    ("تاریخ‌ها", {
+        "fields": ("created_at", "updated_at")
+    }),
+)
