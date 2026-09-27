@@ -141,6 +141,7 @@ class Property(SluggedModel):
     verification_status = models.CharField(
         max_length=20,
         choices=VerificationStatus.choices,
+        default=VerificationStatus.UNVERIFIED,
         verbose_name="وضعیت تایید بازرس",
     )
 
@@ -217,7 +218,7 @@ class District(SluggedModel):
     county = models.ForeignKey(
         County,
         on_delete=models.CASCADE,
-        related_name="rural_districts",
+        related_name="districts",
         verbose_name="شهرستان",
     )
     # Identity
@@ -237,7 +238,7 @@ class RuralDistrict(SluggedModel):
     district = models.ForeignKey(
         District,
         on_delete=models.CASCADE,
-        related_name="ruraldistricts",
+        related_name="rural_districts",
         verbose_name="بخش",
     )
     # Identity
@@ -349,6 +350,7 @@ class PropertyImage(models.Model):
         on_delete=models.CASCADE,
         related_name="images",
         verbose_name=ACCOMMODATION,
+        
     )
 
     # Image
@@ -389,7 +391,7 @@ class PropertyRule(models.Model):
     # Classification
     rule_key = models.CharField(
         max_length=50,
-        choices=GeneralRule,
+        choices=GeneralRule.choices,
         verbose_name="نوع قانون",
     )
 
