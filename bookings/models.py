@@ -1,16 +1,10 @@
-from django.db import models
-
 # Create your models here.
-from decimal import Decimal
-
 from django.conf import settings
+from django.contrib.postgres.constraints import ExclusionConstraint
+from django.contrib.postgres.indexes import GistIndex
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
-from django.contrib.postgres.constraints import ExclusionConstraint
-from django.contrib.postgres.fields import DateTimeRangeField
-from django.contrib.postgres.indexes import GistIndex
-from django.contrib.postgres.operations import BtreeGistExtension
 
 
 class Villa(models.Model):
@@ -32,13 +26,13 @@ class Villa(models.Model):
     cleaning_fee = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=Decimal("0")
+        default=0
     )
 
     service_fee = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=Decimal("0")
+        default=0
     )
 
     extra_guest_threshold = models.PositiveIntegerField(
@@ -49,7 +43,7 @@ class Villa(models.Model):
     extra_guest_fee = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=Decimal("0")
+        default=0
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -67,10 +61,10 @@ class Booking(models.Model):
         CANCELLED = "cancelled", "لغو شده"
         EXPIRED = "expired", "منقضی شده"
 
-    ACTIVE_STATUSES = [
+    ACTIVE_STATUSES = (
         Status.PENDING,
         Status.CONFIRMED,
-    ]
+    )
 
     villa = models.ForeignKey(
         Villa,
@@ -120,25 +114,25 @@ class Booking(models.Model):
     cleaning_fee = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=Decimal("0")
+        default=0
     )
 
     service_fee = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=Decimal("0")
+        default=0
     )
 
     extra_guest_fee = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=Decimal("0")
+        default=0
     )
 
     discount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=Decimal("0")
+        default=0
     )
 
     final_price = models.DecimalField(
@@ -173,13 +167,13 @@ class Booking(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        indexes = [
-            GistIndex(
-                fields=["villa", "check_in", "check_out"]
-            ),
-        ]
+        indexes = (
+        GistIndex(
+            fields=["villa", "check_in", "check_out"]
+        ),
+    )
 
-        constraints = [
+        constraints = (
             ExclusionConstraint(
                 name="prevent_overlapping_active_bookings",
                 expressions=[
@@ -197,18 +191,19 @@ class Booking(models.Model):
                     ),
                 ],
                 condition=Q(
-                    status__in=[
-                        Status.PENDING,
-                        Status.CONFIRMED,
-                    ]
+                    status__in=(
+                        "pending"
+                        "confirmed"
+                    )
                 ),
             ),
-        ]
-
+        )
     def __str__(self):
         return f"{self.villa.title} - {self.guest}"
 
     def clean(self):
+        
+        
         if self.check_out <= self.check_in:
             raise ValidationError(
                 "تاریخ خروج باید بعد از تاریخ ورود باشد."
