@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'jalali_date',
     'rest_framework',
+    "drf_spectacular",
     'accounts',
     'bookings',
     'properties',
@@ -229,4 +230,6 @@ JALALI_DATE_DEFAULTS = {
     },
 }
 
-
+REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
